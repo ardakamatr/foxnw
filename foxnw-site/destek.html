@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>FoxNW | Destek</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #1a1a1a; color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; padding: 50px; }
+        .support-card { background: #222; padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; border: 1px solid #e67e22; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #333; color: white; }
+        .send-btn { width: 100%; padding: 12px; background: #e67e22; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 8px; }
+        .back-btn { display: block; text-align: center; margin-top: 15px; color: #aaa; text-decoration: none; font-size: 14px; }
+        .info-box { margin-top: 20px; padding: 10px; background: rgba(230, 126, 34, 0.1); border-radius: 8px; font-size: 13px; color: #e67e22; }
+    </style>
+</head>
+<body>
+    <div class="support-card">
+        <h2>🦊 Destek Oluştur</h2>
+        <p>Mesajın direkt yetkililere iletilecektir.</p>
+        
+        <form id="supportForm">
+            <input type="text" id="nick" placeholder="Minecraft Adın" required>
+            <input type="text" id="discord" placeholder="Discord Adın (Cevap için)" required>
+            <textarea id="msg" rows="5" placeholder="Sorunun nedir?" required></textarea>
+            <button type="submit" class="send-btn">Mesajı Gönder</button>
+        </form>
+
+        <div class="info-box">
+            <strong>Bilgi:</strong> Cevaplarımız size Discord üzerinden veya bir sonraki güncellemede buradan duyurulacaktır.
+        </div>
+
+        <a href="index.html" class="back-btn">← Ana Sayfaya Dön</a>
+    </div>
+
+    <script>
+        document.getElementById('supportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // BURAYA ÖNCEKİ MESAJDAKİ DISCORD WEBHOOK KODUNU YAPIŞTIRMALISIN
+            alert("Mesajın başarıyla gönderildi!");
+        });
+    </script>
+</body>
+</html>

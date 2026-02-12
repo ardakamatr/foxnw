@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoxNW | Karanlık Orman</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
+        
+        body { 
+            background: #000; 
+            color: white; 
+            overflow-x: hidden;
+        }
+
+        /* MOUSE IŞIK TAKİBİ */
+        #cursor-glow {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle 180px at var(--x) var(--y), rgba(230, 126, 34, 0.2), transparent 80%);
+            z-index: 9999;
+        }
+
+        /* AKAN YAZI */
+        .marquee-container {
+            position: fixed; top: 0; width: 100%; background: #e67e22;
+            color: white; padding: 10px 0; z-index: 1000; font-weight: bold;
+        }
+        .marquee-text { display: inline-block; white-space: nowrap; animation: marquee 15s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* SİYAH DİKENLİ ÇALILAR (SVG) */
+        .bush {
+            position: fixed;
+            width: 100%;
+            height: 300px;
+            z-index: 950;
+            pointer-events: none;
+            background-repeat: repeat-x;
+            background-size: 800px 300px;
+            /* Dikenli, sivri uçlu siyah çalı yapısı */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 300'%3E%3Cpath d='M0 300 L50 150 L100 280 L150 100 L200 270 L250 50 L300 280 L350 120 L400 290 L450 80 L500 270 L550 40 L600 280 L650 110 L700 290 L750 70 L800 270 L850 30 L900 280 L950 130 L1000 300 Z' fill='%23000000'/%3E%3Cpath d='M0 300 L30 220 L70 290 L120 180 L180 280 L230 140 L290 290 L340 200 L400 280 L460 150 L520 290 L580 210 L640 280 L700 160 L760 290 L820 220 L880 280 L940 180 L1000 300 Z' fill='%23050505'/%3E%3C/svg%3E");
+            transition: transform 0.2s ease-out;
+        }
+        .bush-top { top: -280px; transform: rotate(180deg); }
+        .bush-bottom { bottom: -280px; }
+
+        section { 
+            min-height: 100vh; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; padding: 100px 20px; 
+            position: relative;
+        }
+
+        /* ANA LOGO EFEKTİ */
+        .logo { 
+            width: 200px; 
+            filter: drop-shadow(0 0 15px #e67e22); 
+            margin-bottom: 20px; 
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .logo:hover { 
+            transform: scale(1.3) rotate(5deg); 
+            filter: drop-shadow(0 0 30px #ff9f43);
+        }
+
+        /* SAYAC */
+        .countdown { display: flex; gap: 15px; margin: 30px 0; z-index: 10; }
+        .time-box { background: rgba(0, 0, 0, 0.6); border: 2px solid #e67e22; padding: 15px; border-radius: 12px; min-width: 95px; text-align: center; }
+        .time-box span { display: block; font-size: 2rem; font-weight: bold; color: #e67e22; }
+
+        /* ANİMASYONLU PENCERELER (Oyun Modları) */
+        .window-container {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px; width: 100%; max-width: 1100px; z-index: 10;
+        }
+
+        .game-window {
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid rgba(230, 126, 34, 0.4);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: 0.4s;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        .game-window.show { opacity: 1; transform: translateY(0); }
+        .game-window:hover { border-color: #e67e22; box-shadow: 0 0 20px rgba(230, 126, 34, 0.3); }
+
+        .window-header {
+            background: #e67e22; padding: 10px; display: flex; gap: 8px; align-items: center;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(0,0,0,0.3); }
+        
+        .window-body { padding: 30px; text-align: center; }
+        .game-icon { font-size: 4rem; margin-bottom: 15px; display: block; }
+        .window-body h2 { color: #e67e22; margin-bottom: 10px; }
+
+        /* BUTONLAR */
+        .action-button {
+            position: fixed; bottom: 30px; background: #e67e22; color: white;
+            padding: 15px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; z-index: 10001;
+        }
+        .copy-btn { right: 30px; border:none; cursor: pointer; }
+        .support-btn { left: 30px; background: #2980b9; }
+    </style>
+</head>
+<body>
+
+    <div id="cursor-glow"></div>
+
+    <div class="marquee-container">
+        <div class="marquee-text">🚀 LAUNCHER YAKINDA GELİYOR • 🚀 LAUNCHER YAKINDA GELİYOR • 🚀 LAUNCHER YAKINDA GELİYOR</div>
+    </div>
+
+    <div class="bush bush-top" id="bushTop"></div>
+    <div class="bush bush-bottom" id="bushBottom"></div>
+
+    <section>
+        <img src="foxlogo1.png" alt="FoxNW Logo" class="logo">
+        <h1 style="font-size: 4rem; color:#e67e22; letter-spacing: 5px;">FOXNW</h1>
+        
+        <div class="countdown">
+            <div class="time-box"><span id="days">14</span>GÜN</div>
+            <div class="time-box"><span id="hours">00</span>SAAT</div>
+            <div class="time-box"><span id="minutes">00</span>DK</div>
+            <div class="time-box"><span id="seconds">00</span>SN</div>
+        </div>
+        <p style="opacity: 0.6;">Aşağı kaydırarak dikenli yollardan geç...</p>
+    </section>
+
+    <section id="games">
+        <div class="window-container">
+            <div class="game-window">
+                <div class="window-header">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <span style="font-size: 0.8rem; font-weight: bold; margin-left: 10px;">boxpvp.exe</span>
+                </div>
+                <div class="window-body">
+                    <span class="game-icon">📦</span>
+                    <h2>BOXPVP</h2>
+                    <p>Sınırlı alan, sonsuz savaş. Kendi kitini oluştur ve zirveye tırman.</p>
+                </div>
+            </div>
+
+            <div class="game-window">
+                <div class="window-header">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <span style="font-size: 0.8rem; font-weight: bold; margin-left: 10px;">smp_v1.sys</span>
+                </div>
+                <div class="window-body">
+                    <span class="game-icon">🌲</span>
+                    <h2>SMP</h2>
+                    <p>Gerçek bir ormanda hayatta kalma deneyimi. Dostlarınla krallığını kur.</p>
+                </div>
+            </div>
+
+            <div class="game-window">
+                <div class="window-header">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <span style="font-size: 0.8rem; font-weight: bold; margin-left: 10px;">pvp_train.bat</span>
+                </div>
+                <div class="window-body">
+                    <span class="game-icon">⚔️</span>
+                    <h2>PRACTICE</h2>
+                    <p>En keskin kılıçlar burada bilenir. Rakiplerini düelloda alt et.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <a href="destek.html" class="action-button support-btn">🦊 Destek</a>
+    <button class="action-button copy-btn" onclick="copyIP()">play.foxnw.com</button>
+
+    <script>
+        // IŞIK TAKİBİ
+        const glow = document.getElementById('cursor-glow');
+        window.addEventListener('mousemove', e => {
+            glow.style.setProperty('--x', e.clientX + 'px');
+            glow.style.setProperty('--y', e.clientY + 'px');
+        });
+
+        // DİKENLİ ÇALI VE PENCERE ANİMASYONU
+        window.addEventListener('scroll', () => {
+            const scrollVal = window.scrollY;
+            const bBottom = document.getElementById('bushBottom');
+            const bTop = document.getElementById('bushTop');
+
+            // Çalıları hareket ettir
+            let moveAmount = scrollVal * 0.3;
+            if (moveAmount > 250) moveAmount = 250;
+            bBottom.style.transform = `translateY(-${moveAmount}px)`;
+            bTop.style.transform = `translateY(${moveAmount}px) rotate(180deg)`;
+
+            // Pencereleri görünür yap
+            const windows = document.querySelectorAll('.game-window');
+            windows.forEach(win => {
+                const winTop = win.getBoundingClientRect().top;
+                if(winTop < window.innerHeight - 100) {
+                    win.classList.add('show');
+                }
+            });
+        });
+
+        // GERİ SAYIM
+        let target = new Date().getTime() + (14 * 24 * 60 * 60 * 1000);
+        setInterval(() => {
+            let d = target - new Date().getTime();
+            document.getElementById("days").innerHTML = Math.floor(d / 86400000);
+            document.getElementById("hours").innerHTML = Math.floor((d % 86400000) / 3600000);
+            document.getElementById("minutes").innerHTML = Math.floor((d % 3600000) / 60000);
+            document.getElementById("seconds").innerHTML = Math.floor((d % 60000) / 1000);
+        }, 1000);
+
+        function copyIP() {
+            navigator.clipboard.writeText("play.foxnw.com");
+            alert("IP Kopyalandı!");
+        }
+    </script>
+</body>
+</html>
