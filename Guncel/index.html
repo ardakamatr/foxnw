@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoxNW | Karanlık Ormanın Hükümdarı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        html, body {
+            background: #000;
+            color: white;
+            overflow-x: hidden;
+            scroll-snap-type: y mandatory;
+        }
+
+        /* 1. YÜKLEME EKRANI (LOADING SCREEN) */
+        #loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+            transition: opacity 1s ease-in-out;
+        }
+        .loader-logo {
+            width: 150px;
+            animation: pulse 1.5s infinite ease-in-out;
+            filter: drop-shadow(0 0 20px #e67e22);
+        }
+        .loader-text {
+            margin-top: 20px;
+            color: #e67e22;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        /* MOUSE IŞIK TAKİBİ */
+        #cursor-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle 180px at var(--x) var(--y), rgba(230, 126, 34, 0.2), transparent 80%);
+            z-index: 9999;
+        }
+
+        /* ÜST DUYURU */
+        .marquee-container {
+            position: fixed; top: 0; width: 100%; background: #e67e22;
+            color: white; padding: 12px 0; z-index: 1000; font-weight: bold;
+            text-transform: uppercase;
+        }
+        .marquee-text { display: inline-block; white-space: nowrap; animation: marquee 20s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* SİYAH DİKENLİ ÇALILAR */
+        .bush {
+            position: fixed; width: 100%; height: 350px; z-index: 950; pointer-events: none;
+            background-repeat: repeat-x; background-size: 800px 350px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 300'%3E%3Cpath d='M0 300 L50 120 L100 280 L150 80 L200 270 L250 30 L300 280 L350 100 L400 290 L450 50 L500 270 L550 20 L600 280 L650 90 L700 290 L750 40 L800 270 L850 10 L900 280 L950 110 L1000 300 Z' fill='%23000000'/%3E%3C/svg%3E");
+            transition: transform 0.1s ease-out;
+        }
+        .bush-top { top: -340px; transform: rotate(180deg); }
+        .bush-bottom { bottom: -340px; }
+
+        section { height: 100vh; width: 100%; display: flex; justify-content: center; align-items: center; scroll-snap-align: start; position: relative; }
+
+        /* HERO AREA */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.9)), 
+                        url('pngtree-two-small-foxes-peeking-out-from-behind-the-trees-picture-image_2464015.jpg');
+            background-size: cover; background-position: center;
+        }
+        .hero-content { text-align: center; z-index: 10; padding: 0 20px; }
+        .logo { width: 280px; filter: drop-shadow(0 0 30px rgba(230,126,34,0.5)); transition: 0.5s; }
+        .main-title { font-size: 5rem; font-weight: 900; color: #e67e22; line-height: 1; }
+
+        /* İKNA EDİCİ YAZI */
+        .convince-text {
+            max-width: 700px;
+            margin: 25px auto;
+            font-size: 1.2rem;
+            color: #ddd;
+            font-style: italic;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+            line-height: 1.6;
+        }
+
+        /* OYUN TANITIM STİLİ */
+        .game-container {
+            width: 90%; max-width: 1200px; display: flex; align-items: center; gap: 50px;
+            opacity: 0; transform: translateY(100px); transition: 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        section.active .game-container { opacity: 1; transform: translateY(0); }
+
+        .aesir-frame {
+            flex: 1.2; border-radius: 20px; overflow: hidden;
+            border: 2px solid #e67e22; box-shadow: 0 0 50px rgba(230,126,34,0.2);
+            clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+        }
+        .aesir-frame img { width: 100%; height: 400px; object-fit: cover; }
+
+        .aesir-info { flex: 0.8; }
+        .aesir-info h2 { font-size: 3.5rem; font-weight: 900; color: #fff; line-height: 0.9; margin-bottom: 15px; }
+
+        /* BUTONLAR */
+        .action-button {
+            position: fixed; bottom: 30px; background: #e67e22; color: white;
+            padding: 18px 35px; border-radius: 5px; text-decoration: none; font-weight: bold; z-index: 10001;
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); transition: 0.3s;
+        }
+        .action-button:hover { background: #fff; color: #000; }
+        .copy-btn { right: 30px; border:none; cursor: pointer; }
+        .support-btn { left: 30px; background: #2980b9; }
+
+        /* SAYAÇ */
+        .count-grid { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+        .count-item { background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid rgba(230,126,34,0.5); border-radius: 5px; min-width: 80px; }
+        .count-item span { font-size: 1.8rem; font-weight: bold; color: #e67e22; display: block; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <img src="foxlogo1.png" class="loader-logo" alt="Logo">
+        <div class="loader-text">SİTE YÜKLENİYOR...</div>
+    </div>
+
+    <div id="cursor-glow"></div>
+    <div class="marquee-container">
+        <div class="marquee-text">🚀 oyna.foxnw.com • YAKINDA SİZLERLE • 🚀 oyna.foxnw.com • YAKINDA SİZLERLE</div>
+    </div>
+
+    <div class="bush bush-top" id="bushTop"></div>
+    <div class="bush bush-bottom" id="bushBottom"></div>
+
+    <section class="hero active">
+        <div class="hero-content">
+            <img src="foxlogo1.png" alt="Logo" class="logo">
+            <h1 class="main-title">FOXNW</h1>
+            
+            <div class="count-grid">
+                <div class="count-item"><span id="days">00</span>GÜN</div>
+                <div class="count-item"><span id="hours">00</span>SAAT</div>
+                <div class="count-item"><span id="minutes">00</span>DK</div>
+                <div class="count-item"><span id="seconds">00</span>SN</div>
+            </div>
+
+            <p class="convince-text">
+                "Sıradan sunuculardan sıkılmadın mı? Karanlık ormanın derinliklerinde, tilkilerin kurnazlığı ve savaşçıların gücü birleşiyor. <br>
+                <b>Gerçek adaleti, kesintisiz aksiyonu ve benzersiz topluluğu hissetmek için aşağı kaydır. Macera seni bekliyor!"</b>
+            </p>
+            <p style="color:#e67e22; font-weight: bold; animation: pulse 2s infinite;">▼ OYUNLARIMIZI KEŞFET ▼</p>
+        </div>
+    </section>
+
+    <section>
+        <div class="game-container">
+            <div class="aesir-frame">
+                <img src="box.png" alt="BoxPVP">
+            </div>
+            <div class="aesir-info">
+                <h2>BOX<br><span style="color:#e67e22;">PVP</span></h2>
+                <p style="border-left: 4px solid #e67e22; padding-left: 15px;">Sadece en kurnaz tilkiler hayatta kalır! Dar alanda stratejik kit yönetimi ve RPG sistemleriyle rakiplerini alt et. FoxNW'ye özel mekanikler seni bekliyor.</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="game-container" style="flex-direction: row-reverse;">
+            <div class="aesir-frame" style="clip-path: polygon(0% 0%, 95% 0%, 100% 100%, 5% 100%);">
+                <img src="smp.png" alt="SMP">
+            </div>
+            <div class="aesir-info" style="text-align: right;">
+                <h2 style="border-right: 4px solid #e67e22; padding-right: 15px;">FOX<br><span style="color:#e67e22;">SMP</span></h2>
+                <p style="border-right: 4px solid #e67e22; padding-right: 15px;">Doğaya hükmet ya da doğanın bir parçası ol. Gelişmiş ekonomi ve klan sistemleriyle Minecraft deneyimini en saf ve heyecan verici haliyle yaşa.</p>
+            </div>
+        </div>
+    </section>
+
+    <a href="destek.html" class="action-button support-btn">🦊 DESTEK AL</a>
+    <button class="action-button copy-btn" onclick="copyIP()">PLAY.FOXNW.COM</button>
+
+    <script>
+        // --- 1. YÜKLEME EKRANI KONTROLÜ (3 SANİYE) ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 1000); // Kararma süresi
+            }, 3000); // 3 saniye bekleme
+        });
+
+        // MOUSE IŞIĞI
+        window.addEventListener('mousemove', e => {
+            document.getElementById('cursor-glow').style.setProperty('--x', e.clientX + 'px');
+            document.getElementById('cursor-glow').style.setProperty('--y', e.clientY + 'px');
+        });
+
+        // KAYDIRMA VE ÇALILAR
+        window.addEventListener('scroll', () => {
+            const h = window.innerHeight;
+            const scroll = window.scrollY;
+            let move = (scroll % h) * 0.6;
+            if (move > 345) move = 345;
+            document.getElementById('bushBottom').style.transform = `translateY(-${move}px)`;
+            document.getElementById('bushTop').style.transform = `translateY(${move}px) rotate(180deg)`;
+
+            document.querySelectorAll('section').forEach(sec => {
+                const rect = sec.getBoundingClientRect();
+                if (rect.top <= h/2 && rect.bottom >= h/2) sec.classList.add('active');
+                else sec.classList.remove('active');
+            });
+        });
+
+        // SAYAÇ
+        const targetDate = new Date("2026-02-26T00:00:00").getTime(); 
+        const timer = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerText = d < 10 ? "0" + d : d;
+            document.getElementById("hours").innerText = h < 10 ? "0" + h : h;
+            document.getElementById("minutes").innerText = m < 10 ? "0" + m : m;
+            document.getElementById("seconds").innerText = s < 10 ? "0" + s : s;
+
+            if (distance < 0) {
+                clearInterval(timer);
+                document.querySelector(".count-grid").innerHTML = "<h1>SUNUCU AKTİF!</h1>";
+            }
+        }, 1000);
+
+        function copyIP() {
+            navigator.clipboard.writeText("play.foxnw.com");
+            alert("Sunucu adresi kopyalandı! Savaşa hazır mısın?");
+        }
+    </script>
+</body>
+</html>
